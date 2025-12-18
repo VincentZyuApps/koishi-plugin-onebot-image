@@ -6,6 +6,12 @@
 
 推荐使用Napcat
 
+### 更新日志
+- **0.2.2-beta.1+20251218**
+  - 新增：aui指令允许使用qq号进行查询
+- **前面的版本号**
+  - 忘了。反正你看到的features都是前面更新的
+
 #### Napcat平台渲染效果:
 ##### 用户信息：
 ![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_source.png](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_source.png)

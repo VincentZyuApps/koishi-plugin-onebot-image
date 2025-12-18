@@ -1,8 +1,7 @@
 // index.ts
 import { Context, Schema, h } from 'koishi'
-import { readFileSync } from 'fs'
+import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { resolve } from 'path'
-import path from 'path'
 import {} from 'koishi-plugin-adapter-onebot';
 
 import { IMAGE_STYLES, type ImageStyle, type ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, type ImageType, ONEBOT_IMPL_NAME, type OneBotImplName, getNapcatQQStatusText } from './type';
@@ -83,6 +82,7 @@ export interface Config {
 
   verboseSessionOutput: boolean
   verboseConsoleOutput: boolean
+  verboseFileOutput: boolean
 }
 export const Config: Schema<Config> = Schema.intersect([
   Schema.object({
@@ -198,6 +198,9 @@ export const Config: Schema<Config> = Schema.intersect([
     verboseConsoleOutput: Schema.boolean()
       .default(false)
       .description('💻 是否在控制台输出详细信息。'),
+    verboseFileOutput: Schema.boolean()
+      .default(false)
+      .description('📄 是否在文件中输出详细信息。(生产环境不要开)'),
   }).description('调试 (Debug) 配置 🐞')
 
 ]);
@@ -230,11 +233,11 @@ export function apply(ctx: Context, config: Config) {
     });
 
   if ( config.enableUserInfoCommand ) 
-    ctx.command(config.userinfoCommandName, `获取用户信息, 发送${responseHint}`)
+    ctx.command(`${config.userinfoCommandName} [qqId:string]`, `获取用户信息, 发送${responseHint}`)
       .alias('aui')
       .alias("awa_user_info")
       .option("imageStyleIdx", "-i, --idx, --index <idx:number> 图片样式索引")
-      .action( async ( {session, options} ) => {
+      .action( async ( {session, options}, qqId ) => {
         if ( !session.onebot )
           return session.send("[error]当前会话不支持onebot协议。");
 
@@ -262,11 +265,17 @@ export function apply(ctx: Context, config: Config) {
         }
 
         let targetUserId = session.userId;
-        // 检查是否有 @ 用户
-        for ( const e of session.event.message.elements ){
-          if ( e.type === 'at'){
-            targetUserId = e.attrs.id;
-            break;
+        // 是否通过参数直接指定了 QQ 号（此时使用私聊逻辑）
+        const isDirectQQQuery = !!qqId;
+        if (isDirectQQQuery) {
+          targetUserId = qqId;
+        } else {
+          // 检查是否有 @ 用户
+          for ( const e of session.event.message.elements ){
+            if ( e.type === 'at'){
+              targetUserId = e.attrs.id;
+              break;
+            }
           }
         }
 
@@ -295,7 +304,7 @@ export function apply(ctx: Context, config: Config) {
           if ( config.verboseSessionOutput ) await session.send(strangerInfoObjMsg);
           if ( config.verboseConsoleOutput ) ctx.logger.info(strangerInfoObjMsg);
 
-          if (session.guildId) { // 如果在群聊中
+          if (session.guildId && !isDirectQQQuery) { // 如果在群聊中，且不是直接 QQ 查询
             const groupMemberInfoObj = await session.onebot.getGroupMemberInfo(session.guildId, targetUserId);
             let groupMemberInfoObjMsg = `groupMemberInfoObj = \n\t ${JSON.stringify(groupMemberInfoObj)}`;
             if ( config.verboseSessionOutput ) await session.send(groupMemberInfoObjMsg);
@@ -403,6 +412,17 @@ export function apply(ctx: Context, config: Config) {
             const selectedImageStyle = IMAGE_STYLES[selectedStyleDetailObj.styleKey];
             const selectedDarkMode = selectedStyleDetailObj.darkMode;
             const userInfoimageBase64 = await renderUserInfo(ctx, unifiedUserInfo, unifiedContextInfo, selectedImageStyle, selectedDarkMode, config.imageType, config.screenshotQuality);
+            if ( config.verboseFileOutput ){
+              try {
+                const tmpDir = resolve(__dirname, '../tmp');
+                mkdirSync(tmpDir, { recursive: true });
+                const outputPath = resolve(tmpDir, 'image_base64.txt');
+                writeFileSync(outputPath, userInfoimageBase64, 'utf-8');
+                ctx.logger.info(`图片 base64 已输出到: ${outputPath}`);
+              } catch (error) {
+                ctx.logger.error(`写入 base64 文件失败: ${error.message}`);
+              }
+            }
             await session.send(`${config.enableQuoteWithImage ? h.quote(session.messageId) : ''}${h.image(`data:image/png;base64,${userInfoimageBase64}`)}`);
             await session.bot.deleteMessage(session.guildId, String(waitTipMsgId));
           }

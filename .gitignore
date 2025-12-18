@@ -20,3 +20,6 @@ tsconfig.tsbuildinfo
 # Font files
 assets/*.ttf
 assets/*.otf
+
+# Temporary files
+tmp/
