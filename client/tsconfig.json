@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../dist",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "jsx": "preserve",
+    "lib": ["ESNext", "DOM"],
+    "strict": true,
+    "declaration": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["./**/*.ts", "./**/*.vue"]
+}

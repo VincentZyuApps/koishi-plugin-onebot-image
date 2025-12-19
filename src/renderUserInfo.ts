@@ -11,7 +11,7 @@ const formatMsTimestamp = (timestamp) => {
     return date.toLocaleString('zh-CN');
 };
 
-const getSourceHanSerifSCStyleUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64, groupAvatarBase64, fontBase64, enableDarkMode) => {
+export const getSourceHanSerifSCStyleUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64, groupAvatarBase64, fontBase64, enableDarkMode, hidePhoneNumber = true) => {
     const timestamp = generateTimestamp();
 
     const backgroundStyle = avatarBase64
@@ -74,11 +74,11 @@ const getSourceHanSerifSCStyleUserInfoHtmlStr = async (userInfo, contextInfo, av
         getInfoItem('性别', getSex(userInfo.sex)),
         getInfoItem('年龄', getValue(userInfo.age)),
         getInfoItem('QQ等级', getValue(userInfo.qq_level || userInfo.level)),
-        getInfoItem('QID', getValue(userInfo.q_id)),
+        getInfoItem('QID', getValue(userInfo.q_id || userInfo.qid)),
         getInfoItem('注册时间', formatMsTimestamp(userInfo.RegisterTime)),
-        getInfoItem('个性签名', getValue(userInfo.sign || userInfo.longNick), true),
+        getInfoItem('个性签名', getValue(userInfo.sign || userInfo.longNick || userInfo.long_nick), true),
         getInfoItem('邮箱', getValue(userInfo.eMail || userInfo.email)),
-        getInfoItem('电话', getValue(userInfo.phoneNum || userInfo.phone)),
+        getInfoItem('电话', hidePhoneNumber ? '<span class="unknown">已隐藏</span>' : getValue(userInfo.phoneNum || userInfo.phone)),
         getInfoItem('地址信息', getLocationString(userInfo), true),
         `
         <div class="two-column-row">
@@ -209,7 +209,7 @@ const getSourceHanSerifSCStyleUserInfoHtmlStr = async (userInfo, contextInfo, av
 };
 
 
-const getFlatMinimalUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64, groupAvatarBase64, fontBase64, enableDarkMode) => {
+export const getFlatMinimalUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64, groupAvatarBase64, fontBase64, enableDarkMode, hidePhoneNumber = true) => {
     const isGroup = contextInfo.isGroup;
     const isDarkMode = enableDarkMode;
     const timestamp = new Date().toLocaleString('zh-CN', {
@@ -225,10 +225,10 @@ const getFlatMinimalUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64
     // 扁平化配色方案
     const colors = isDarkMode ? {
         // 黑色背景配色：亮蓝、亮绿、亮橙
-        background: '#000000',
+        background: '#0a0a0a',
         cardBackground: '#1a1a1a',
         textPrimary: '#ffffff',
-        textSecondary: '#cccccc',
+        textSecondary: '#b0b0b0',
         primary: '#00d4ff',      // 亮蓝色
         secondary: '#00ff88',    // 亮绿色
         accent: '#ff8800',       // 亮橙色
@@ -236,15 +236,15 @@ const getFlatMinimalUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64
         hover: '#2a2a2a'
     } : {
         // 白色背景配色：黑、蓝、灰
-        background: '#ffffff',
-        cardBackground: '#f8f9fa',
+        background: '#f5f7fa',
+        cardBackground: '#ffffff',
         textPrimary: '#2c3e50',  // 深蓝灰
         textSecondary: '#6c757d', // 中性灰
         primary: '#007bff',      // 蓝色
         secondary: '#34495e',    // 深灰蓝
         accent: '#6c757d',       // 灰色
-        border: '#e9ecef',
-        hover: '#f1f3f4'
+        border: '#e0e6ed',
+        hover: '#f8f9fa'
     };
 
     const getShengXiao = num => (['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'][num] || '');
@@ -285,144 +285,163 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 16px;
     overflow: hidden;
 }
 .main-container {
     width: 100%;
-    max-width: 920px;
+    max-width: 970px;
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 10px;
 }
 .header {
     background: ${colors.cardBackground};
     border: 2px solid ${colors.border};
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 18px;
+    padding: 14px 20px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,${isDarkMode ? '0.3' : '0.1'});
+    box-shadow: 0 4px 16px rgba(0,0,0,${isDarkMode ? '0.4' : '0.08'});
 }
 .title {
-    font-size: 28px;
+    font-size: 34px;
     font-weight: 700;
     color: ${colors.primary};
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+    letter-spacing: 2px;
 }
 .subtitle {
-    font-size: 16px;
+    font-size: 19px;
     color: ${colors.textSecondary};
+    font-weight: 500;
 }
 .content {
     display: flex;
-    gap: 24px;
+    gap: 10px;
     flex: 1;
     min-height: 0;
 }
 .left-panel {
-    flex: 0 0 280px;
+    flex: 0 0 270px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
 }
 .avatar-card {
     background: ${colors.cardBackground};
     border: 2px solid ${colors.border};
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 18px;
+    padding: 16px 14px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,${isDarkMode ? '0.3' : '0.1'});
+    box-shadow: 0 4px 16px rgba(0,0,0,${isDarkMode ? '0.4' : '0.08'});
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 .avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 60px;
+    width: 130px;
+    height: 130px;
+    border-radius: 65px;
     object-fit: cover;
-    border: 3px solid ${colors.primary};
-    margin-bottom: 16px;
+    border: 4px solid ${colors.primary};
+    margin-bottom: 14px;
     display: block;
-    margin-left: auto;
-    margin-right: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,${isDarkMode ? '0.5' : '0.15'});
 }
 .avatar-placeholder {
-    width: 120px;
-    height: 120px;
-    border-radius: 60px;
-    background: linear-gradient(45deg, ${colors.primary}, ${colors.secondary});
-    margin-bottom: 16px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 130px;
+    height: 130px;
+    border-radius: 65px;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+    margin-bottom: 14px;
 }
 .user-name {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 26px;
+    font-weight: 700;
     color: ${colors.textPrimary};
     margin-bottom: 8px;
+    letter-spacing: 1px;
 }
 .user-id {
-    font-size: 14px;
+    font-size: 17px;
     color: ${colors.textSecondary};
-    background: ${colors.primary}20;
+    background: ${colors.primary}25;
     padding: 6px 12px;
     border-radius: 12px;
     display: inline-block;
+    font-weight: 600;
+    border: 1px solid ${colors.primary}40;
 }
 .group-card {
     background: ${colors.cardBackground};
     border: 2px solid ${colors.border};
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,${isDarkMode ? '0.3' : '0.1'});
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,${isDarkMode ? '0.4' : '0.08'});
+    flex: 0.618;
 }
 .group-header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid ${colors.border};
 }
 .group-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
     object-fit: cover;
-    border: 2px solid ${colors.secondary};
+    border: 3px solid ${colors.secondary};
+    box-shadow: 0 4px 12px rgba(0,0,0,${isDarkMode ? '0.4' : '0.1'});
 }
 .group-info {
     flex: 1;
 }
 .group-name {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 700;
     color: ${colors.textPrimary};
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 .group-id {
     font-size: 14px;
     color: ${colors.textSecondary};
+    font-weight: 500;
 }
 .group-member-count {
-    font-size: 12px;
+    font-size: 13px;
     color: ${colors.accent};
-    margin-top: 4px;
+    margin-top: 3px;
+    font-weight: 600;
 }
 .group-details {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 6px;
 }
 .group-detail-item {
     text-align: center;
+    background: ${colors.background};
+    padding: 6px 4px;
+    border-radius: 10px;
+    border: 1px solid ${colors.border};
 }
 .group-detail-label {
-    font-size: 12px;
+    font-size: 11px;
     color: ${colors.textSecondary};
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    font-weight: 500;
 }
 .group-detail-value {
     font-size: 14px;
     color: ${colors.textPrimary};
-    font-weight: 500;
+    font-weight: 600;
+    word-break: break-all;
 }
 .right-panel {
     flex: 1;
@@ -432,31 +451,37 @@ body {
 .info-card {
     background: ${colors.cardBackground};
     border: 2px solid ${colors.border};
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: 18px;
+    padding: 16px;
     flex: 1;
-    box-shadow: 0 2px 8px rgba(0,0,0,${isDarkMode ? '0.3' : '0.1'});
+    box-shadow: 0 4px 16px rgba(0,0,0,${isDarkMode ? '0.4' : '0.08'});
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 .info-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
+    flex: 1;
+    align-content: start;
 }
 .info-item {
-    background: ${colors.background === '#ffffff' ? '#ffffff' : '#2a2a2a'};
+    background: ${colors.background};
     border: 1px solid ${colors.border};
     border-radius: 10px;
-    padding: 6px 12px;
-    transition: all 0.2s ease;
+    padding: 10px 12px;
+    transition: all 0.25s ease;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: 52px;
 }
 .info-item:hover {
     background: ${colors.hover};
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,${isDarkMode ? '0.4' : '0.15'});
+    box-shadow: 0 4px 16px rgba(0,0,0,${isDarkMode ? '0.5' : '0.12'});
+    border-color: ${colors.primary}50;
 }
 .info-item.full-width {
     grid-column: 1 / -1;
@@ -470,27 +495,11 @@ body {
     letter-spacing: 0.5px;
 }
 .info-value {
-    font-size: 16px;
+    font-size: 18px;
     color: ${colors.textPrimary};
-    font-weight: 500;
-    line-height: 1.3;
+    font-weight: 600;
+    line-height: 1.35;
     word-break: break-all;
-}
-.multi-info {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-}
-.multi-info-item {
-    flex: 1;
-    text-align: center;
-}
-.multi-info-item .info-label {
-    margin-bottom: 4px;
-    font-size: 12px;
-}
-.multi-info-item .info-value {
-    font-size: 15px;
 }
 .unknown {
     color: ${colors.textSecondary};
@@ -499,11 +508,11 @@ body {
 }
 .timestamp {
     position: fixed;
-    top: 8px;
-    left: 8px;
-    font-size: 11px;
+    top: 12px;
+    left: 12px;
+    font-size: 13px;
     color: ${colors.textSecondary};
-    opacity: 0.6;
+    opacity: 0.5;
     font-family: 'Courier New', monospace;
     z-index: 1000;
 }
@@ -555,6 +564,14 @@ body {
                         <div class="group-detail-label">专属头衔</div>
                         <div class="group-detail-value accent-color">${userInfo.title || '无'}</div>
                     </div>
+                    <div class="group-detail-item">
+                        <div class="group-detail-label">加群时间</div>
+                        <div class="group-detail-value">${userInfo.join_time ? `${new Date(userInfo.join_time).toLocaleDateString('zh-CN')}<br>${new Date(userInfo.join_time).toLocaleTimeString('zh-CN')}` : '<span class="unknown">未知</span>'}</div>
+                    </div>
+                    <div class="group-detail-item">
+                        <div class="group-detail-label">最后发言</div>
+                        <div class="group-detail-value">${userInfo.last_sent_time ? `${new Date(userInfo.last_sent_time).toLocaleDateString('zh-CN')}<br>${new Date(userInfo.last_sent_time).toLocaleTimeString('zh-CN')}` : '<span class="unknown">未知</span>'}</div>
+                    </div>
                 </div>
             </div>
             ` : ''}
@@ -577,67 +594,48 @@ body {
                     </div>
                     <div class="info-item">
                         <div class="info-label">QID</div>
-                        <div class="info-value">${userInfo.q_id || '<span class="unknown">未知</span>'}</div>
+                        <div class="info-value">${userInfo.q_id || userInfo.qid || '<span class="unknown">未知</span>'}</div>
                     </div>
-                    
-                    ${userInfo.sign || userInfo.longNick ? `
+                    ${userInfo.sign || userInfo.longNick || userInfo.long_nick ? `
                     <div class="info-item full-width">
                         <div class="info-label">个性签名</div>
-                        <div class="info-value">${userInfo.sign || userInfo.longNick}</div>
+                        <div class="info-value">${userInfo.sign || userInfo.longNick || userInfo.long_nick}</div>
                     </div>
                     ` : ''}
-                    
                     ${userInfo.RegisterTime ? `
                     <div class="info-item full-width">
                         <div class="info-label">注册时间</div>
                         <div class="info-value">${new Date(userInfo.RegisterTime).toLocaleString('zh-CN')}</div>
                     </div>
                     ` : ''}
-                    
                     <div class="info-item full-width">
                         <div class="info-label">邮箱</div>
                         <div class="info-value">${(userInfo.eMail || userInfo.email) && userInfo.eMail !== '-' ? (userInfo.eMail || userInfo.email) : '<span class="unknown">未知</span>'}</div>
                     </div>
                     <div class="info-item full-width">
                         <div class="info-label">电话</div>
-                        <div class="info-value">${userInfo.phoneNum && userInfo.phoneNum !== '-' ? userInfo.phoneNum : '<span class="unknown">未知</span>'}</div>
+                        <div class="info-value">${hidePhoneNumber ? '<span class="unknown">已隐藏</span>' : (userInfo.phoneNum && userInfo.phoneNum !== '-' ? userInfo.phoneNum : '<span class="unknown">未知</span>')}</div>
                     </div>
-                    
                     <div class="info-item full-width">
                         <div class="info-label">地址信息</div>
                         <div class="info-value">${formatAddress(userInfo)}</div>
                     </div>
-                    
                     <div class="info-item full-width">
                         <div class="info-label">个人特征</div>
                         <div class="info-value">生肖: ${getShengXiao(userInfo.shengXiao) || '<span class="unknown">未知</span>'} | 星座: ${getConstellation(userInfo.constellation) || '<span class="unknown">未知</span>'} | 血型: ${getBloodType(userInfo.kBloodType) ? `${getBloodType(userInfo.kBloodType)}型` : '<span class="unknown">未知</span>'}</div>
                     </div>
-                    
                     <div class="info-item full-width">
                         <div class="info-label">生日</div>
                         <div class="info-value">${(userInfo.birthday_year && userInfo.birthday_month && userInfo.birthday_day) ? `${userInfo.birthday_year}年${userInfo.birthday_month}月${userInfo.birthday_day}日` : '<span class="unknown">未知</span>'}</div>
                     </div>
-                    
                     <div class="info-item full-width">
                         <div class="info-label">VIP信息</div>
                         <div class="info-value">VIP: ${userInfo.is_vip ? '是' : '否'} | 年费VIP: ${userInfo.is_years_vip ? '是' : '否'} | VIP等级: ${userInfo.vip_level || 0}</div>
                     </div>
-                    
                     <div class="info-item full-width">
                         <div class="info-label">状态</div>
                         <div class="info-value">${(userInfo.status && userInfo.status.message) || '<span class="unknown">未知</span>'}</div>
                     </div>
-                    
-                    ${isGroup ? `
-                    <div class="info-item">
-                        <div class="info-label">加群时间</div>
-                        <div class="info-value">${userInfo.join_time ? new Date(userInfo.join_time).toLocaleString('zh-CN') : '<span class="unknown">未知</span>'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">最后发言</div>
-                        <div class="info-value">${userInfo.last_sent_time ? new Date(userInfo.last_sent_time).toLocaleString('zh-CN') : '<span class="unknown">未知</span>'}</div>
-                    </div>
-                    ` : ''}
                 </div>
             </div>
         </div>
@@ -647,7 +645,7 @@ body {
 </body></html>`;
 };
 
-const getLXGWWenKaiUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64, groupAvatarBase64, fontBase64, enableDarkMode) => {
+export const getLXGWWenKaiUserInfoHtmlStr = async (userInfo, contextInfo, avatarBase64, groupAvatarBase64, fontBase64, enableDarkMode, hidePhoneNumber = true) => {
     const isGroup = contextInfo.isGroup;
     const isDarkMode = enableDarkMode;
     const timestamp = new Date().toLocaleString('zh-CN', {
@@ -773,11 +771,11 @@ ${contextInfo.memberCount?`<div class="group-member-count">群人数: ${contextI
 <div class="info-card"><div class="info-label">性别</div><div class="info-value">${userInfo.sex === 'male'?'男':userInfo.sex === 'female'?'女':'未知'}</div></div>
 <div class="info-card"><div class="info-label">年龄</div><div class="info-value">${userInfo.age || '<span class="unknown">未知</span>'}</div></div>
 <div class="info-card"><div class="info-label">QQ等级</div><div class="info-value">${userInfo.qq_level || userInfo.level || '<span class="unknown">未知</span>'}</div></div>
-<div class="info-card"><div class="info-label">QID</div><div class="info-value">${userInfo.q_id || '<span class="unknown">未知</span>'}</div></div>
-${userInfo.sign||userInfo.longNick?`<div class="info-card full-width"><div class="info-label">个性签名</div><div class="info-value">${userInfo.sign||userInfo.longNick}</div></div>`:''}
+<div class="info-card"><div class="info-label">QID</div><div class="info-value">${userInfo.q_id || userInfo.qid || '<span class="unknown">未知</span>'}</div></div>
+${userInfo.sign||userInfo.longNick||userInfo.long_nick?`<div class="info-card full-width"><div class="info-label">个性签名</div><div class="info-value">${userInfo.sign||userInfo.longNick||userInfo.long_nick}</div></div>`:''}
 ${userInfo.RegisterTime?`<div class="info-card full-width"><div class="info-label">注册时间</div><div class="info-value">${new Date(userInfo.RegisterTime).toLocaleString('zh-CN')}</div></div>`:''}
 <div class="info-card"><div class="info-label">邮箱</div><div class="info-value">${(userInfo.eMail || userInfo.email) && userInfo.eMail !== '-' ? (userInfo.eMail || userInfo.email) : '<span class="unknown">未知</span>'}</div></div>
-<div class="info-card"><div class="info-label">电话</div><div class="info-value">${userInfo.phoneNum && userInfo.phoneNum !== '-' ? userInfo.phoneNum : '<span class="unknown">未知</span>'}</div></div>
+<div class="info-card"><div class="info-label">电话</div><div class="info-value">${hidePhoneNumber ? '<span class="unknown">已隐藏</span>' : (userInfo.phoneNum && userInfo.phoneNum !== '-' ? userInfo.phoneNum : '<span class="unknown">未知</span>')}</div></div>
 <div class="info-card full-width"><div class="info-label">地址信息</div><div class="info-value">${formatAddress(userInfo)}</div></div>
 <div class="info-card full-width"><div class="info-label">个人特征</div><div class="info-value multi-info-row">
 <div class="multi-info-item"><div class="info-label">生肖</div><div class="info-value">${getShengXiao(userInfo.shengXiao) || '<span class="unknown">未知</span>'}</div></div>
@@ -818,6 +816,7 @@ export async function renderUserInfo(
     enableDarkMode: boolean, 
     imageType: ImageType,
     screenshotQuality: number,
+    hidePhoneNumber: boolean = true,
 ): Promise<string> {
     const browserPage = await ctx.puppeteer.page();
     let avatarBase64: string | undefined;
@@ -855,11 +854,11 @@ export async function renderUserInfo(
         // const htmlContent = await getSourceHanSerifSCStyleUserInfoHtmlStr(userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode);
         let htmlContent;
         if ( imageStyle === IMAGE_STYLES.SOURCE_HAN_SERIF_SC ) {
-            htmlContent = await getSourceHanSerifSCStyleUserInfoHtmlStr (userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode);
+            htmlContent = await getSourceHanSerifSCStyleUserInfoHtmlStr (userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode, hidePhoneNumber);
         } else if ( imageStyle === IMAGE_STYLES.LXGW_WENKAI ) {
-            htmlContent = await getLXGWWenKaiUserInfoHtmlStr            (userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode);
+            htmlContent = await getLXGWWenKaiUserInfoHtmlStr            (userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode, hidePhoneNumber);
         } else if ( imageStyle === IMAGE_STYLES.FLAT_MINIMAL ) {
-            htmlContent = await getFlatMinimalUserInfoHtmlStr          (userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode);
+            htmlContent = await getFlatMinimalUserInfoHtmlStr          (userInfo, contextInfo, avatarBase64 || '', groupAvatarBase64 || '', fontBase64 || '', enableDarkMode, hidePhoneNumber);
         }
 
         // 设置页面视口为999x999

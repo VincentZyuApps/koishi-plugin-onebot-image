@@ -192,8 +192,11 @@ export function convertToUnifiedUserInfo(userInfo: any, onebotImplName: OneBotIm
       unfriendly: userInfo.unfriendly || false,
       card_changeable: userInfo.card_changeable || false,
       // Lagrange 特有字段
-      sign: userInfo.sign || '',
-      q_id: userInfo.q_id || '',
+      sign: userInfo.sign || userInfo.longNick || userInfo.long_nick || '',
+      q_id: userInfo.q_id || userInfo.qid || '',                              // 同时支持 q_id 和 qid 两种格式
+      qid: userInfo.qid || userInfo.q_id || '',                                // 同时支持 qid 和 q_id 两种格式
+      longNick: userInfo.longNick || userInfo.long_nick || '',
+      long_nick: userInfo.long_nick || userInfo.longNick || '',
       RegisterTime: userInfo.RegisterTime || '',
       Business: userInfo.Business || [],
       status: userInfo.status || {},

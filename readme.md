@@ -7,6 +7,12 @@
 推荐使用Napcat
 
 ### 更新日志
+- **0.3.1-beta.1+20251219**
+  - 微调flat模板 aui的样式捏
+- **0.3.0-beta.1+20251219**
+  - 增加配置页面webui里面嵌入的html预览捏
+- **0.2.3-beta.1+20251218**
+  - 手机号可以强制隐藏捏
 - **0.2.2-beta.1+20251218**
   - 新增：aui指令允许使用qq号进行查询
 - **前面的版本号**
@@ -16,9 +22,11 @@
 ##### 用户信息：
 ![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_source.png](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_source.png)
 ![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_lxgw.png](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_lxgw.png)
+![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_flat.png](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_aui_flat.png)
 ##### 群管理列表：
 ![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_al_source.pnge](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_al_source.png)
 ![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_al_lxgw.png](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_al_lxgw.png)
+![https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_al_flat.png](https://gitee.com/vincent-zyu/koishi-plugin-onebot-image/releases/download/example_image/napcat_al_flat.png)
 
 ## dev 
 ### 查看git大文件
@@ -61,7 +69,7 @@ Invoke-WebRequest -Uri "https://www.google.com" -Method Head -UseBasicParsing
 npm login --registry https://registry.npmjs.org
 # login npm in browser
 npm run pub onebot-info-image -- --registry https://registry.npmjs.org
-npm dist-tag add koishi-plugin-onebot-info-image@0.2.0-alpha.11+20251013 latest --registry https://registry.npmjs.org
+npm dist-tag add koishi-plugin-onebot-info-image@0.3.1-beta.1+20251219 latest --registry https://registry.npmjs.org
 
 npm view koishi-plugin-onebot-info-image
 npm-stat.com

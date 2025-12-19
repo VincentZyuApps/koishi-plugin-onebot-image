@@ -3,12 +3,14 @@ import { Context, Schema, h } from 'koishi'
 import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { resolve } from 'path'
 import {} from 'koishi-plugin-adapter-onebot';
+import {} from '@koishijs/plugin-console';
 
 import { IMAGE_STYLES, type ImageStyle, type ImageStyleKey, IMAGE_STYLE_KEY_ARR, IMAGE_TYPES, type ImageType, ONEBOT_IMPL_NAME, type OneBotImplName, getNapcatQQStatusText } from './type';
 import { renderUserInfo } from './renderUserInfo'
 import { renderAdminList } from './renderAdminList'
 import { convertToUnifiedUserInfo, convertToUnifiedAdminInfo, convertToUnifiedContextInfo, UnifiedUserInfo, UnifiedAdminInfo, UnifiedContextInfo } from './type'
 import { validateFonts } from './utils'
+import { OnebotInfoImageDataServer } from './data_server'
 
 export const name = 'onebot-info-image'
 
@@ -22,12 +24,11 @@ const pkg = JSON.parse(
 
 export const usage = `
 <h1>Koishi 插件：onebot-info-image 获取群员信息 渲染成图像</h1>
-<h2>🎯 插件版本：v${pkg.version}</h2>
-<p>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b>259248174</b></p>
+<h2>🎯 插件版本：<span style="color: #ff6b6b; font-weight: bold;">v${pkg.version}</span></h2>
+<p>插件使用问题 / Bug反馈 / 插件开发交流，欢迎加入QQ群：<b style="color: #50c878;">259248174</b></p>
 
-目前仅仅适配了Lagrange 和 Napcat 协议
-<br>
-Napcat能拿到的东西更多， 为了更好的使用体验，推荐使用Napcat
+<p>目前仅仅适配了 <b>Lagrange</b> 和 <b>Napcat</b> 协议</p>
+<p style="color: #f39c12;">Napcat能拿到的东西更多， 为了更好的使用体验，推荐使用 Napcat</p>
 
 <hr>
 
@@ -39,20 +40,20 @@ Napcat能拿到的东西更多， 为了更好的使用体验，推荐使用Napc
 
 <hr>
 
-<h3>字体使用声明</h3>
+<h3 style="color: #27ae60;">字体使用声明</h3>
 <p>本插件使用以下开源字体进行图像渲染：</p>
 <ul>
-  <li><b>思源宋体（Source Han Serif SC）</b> - 由 Adobe 与 Google 联合开发，遵循 <a href="https://openfontlicense.org">SIL Open Font License 1.1</a> 协议。</li>
-  <li><b>霞鹜文楷（LXGW WenKai）</b> - 由 LXGW 开发并维护，遵循 <a href="https://openfontlicense.org">SIL Open Font License 1.1</a> 协议。</li>
+  <li><b style="color: #3498db;">思源宋体（Source Han Serif SC）</b> - 由 Adobe 与 Google 联合开发，遵循 <a href="https://openfontlicense.org">SIL Open Font License 1.1</a> 协议。</li>
+  <li><b style="color: #3498db;">霞鹜文楷（LXGW WenKai）</b> - 由 LXGW 开发并维护，遵循 <a href="https://openfontlicense.org">SIL Open Font License 1.1</a> 协议。</li>
 </ul>
 <p>两者均为自由字体，可在本项目中自由使用、修改与发布。若你也在开发相关插件或项目，欢迎一同使用这些优秀的字体。</p>
 
 <hr>
 
-<h3>插件许可声明</h3>
+<h3 style="color: #e67e22;">插件许可声明</h3>
 <p>本插件为开源免费项目，基于 MIT 协议开放。欢迎修改、分发、二创。</p>
-<p>如果你觉得插件好用，欢迎在 GitHub 上 Star 或通过其他方式给予支持（例如提供服务器、API Key 或直接赞助）！</p>
-<p>感谢所有开源字体与项目的贡献者 ❤️</p>
+<p>如果你觉得插件好用，欢迎在 GitHub 上 ⭐ Star 或通过其他方式给予支持（例如提供服务器、API Key 或直接赞助）！</p>
+<p style="color: #e91e63;">感谢所有开源字体与项目的贡献者 ❤️</p>
 `
 
 export interface ImageStyleDetail {
@@ -65,6 +66,7 @@ export interface Config {
 
   enableUserInfoCommand: boolean;
   userinfoCommandName: string;
+  hidePhoneNumber: boolean;
   enableGroupAdminListCommand: boolean;
   groupAdminListCommandName: string;
   inspectStyleCommandName: string;
@@ -103,6 +105,10 @@ export const Config: Schema<Config> = Schema.intersect([
     userinfoCommandName: Schema.string()
       .default('用户信息')
       .description('🔍 用户信息命令名称。'),
+    hidePhoneNumber: Schema.boolean()
+      .default(true)
+      .experimental()
+      .description('📱 是否隐藏手机号。开启后手机号将显示为【已隐藏】。</br> <i> 保护隐私捏 </i>'),
     enableGroupAdminListCommand: Schema.boolean()
       .default(false)
       .description('👥 是否启用群管理员列表命令。'),
@@ -212,6 +218,9 @@ export function apply(ctx: Context, config: Config) {
     ctx.logger.error(`字体文件验证失败: ${error.message}`);
   });
 
+  // 注册 DataService (如果 console 服务可用)
+  ctx.plugin(OnebotInfoImageDataServer);
+
   //帮助文本中的 结果信息格式
   const responseHint = [
     config.sendText && '文本消息',
@@ -265,12 +274,24 @@ export function apply(ctx: Context, config: Config) {
         }
 
         let targetUserId = session.userId;
-        // 是否通过参数直接指定了 QQ 号（此时使用私聊逻辑）
-        const isDirectQQQuery = !!qqId;
-        if (isDirectQQQuery) {
-          targetUserId = qqId;
-        } else {
-          // 检查是否有 @ 用户
+        // 是否通过参数直接指定了目标用户（QQ号 或 @元素）
+        let isDirectQuery = false;
+        if (qqId) {
+          // 尝试从 @ 元素中提取用户 ID
+          const userIdRegex = /<at id="([^"]+)"(?: name="[^"]*")?\/>/;
+          const match = qqId.match(userIdRegex);
+          if (match) {
+            // 是 @ 元素，提取 id
+            targetUserId = match[1];
+            isDirectQuery = true;
+          } else {
+            // 不是 @ 元素，当作纯 QQ 号字符串处理
+            targetUserId = qqId;
+            isDirectQuery = true;
+          }
+        }
+        // 如果没有传参，检查消息中是否有 @ 用户（不算直接查询，走群聊逻辑）
+        if (!isDirectQuery) {
           for ( const e of session.event.message.elements ){
             if ( e.type === 'at'){
               targetUserId = e.attrs.id;
@@ -304,7 +325,7 @@ export function apply(ctx: Context, config: Config) {
           if ( config.verboseSessionOutput ) await session.send(strangerInfoObjMsg);
           if ( config.verboseConsoleOutput ) ctx.logger.info(strangerInfoObjMsg);
 
-          if (session.guildId && !isDirectQQQuery) { // 如果在群聊中，且不是直接 QQ 查询
+          if (session.guildId && !isDirectQuery) { // 如果在群聊中，且不是直接查询（传参）
             const groupMemberInfoObj = await session.onebot.getGroupMemberInfo(session.guildId, targetUserId);
             let groupMemberInfoObjMsg = `groupMemberInfoObj = \n\t ${JSON.stringify(groupMemberInfoObj)}`;
             if ( config.verboseSessionOutput ) await session.send(groupMemberInfoObjMsg);
@@ -411,7 +432,7 @@ export function apply(ctx: Context, config: Config) {
             const waitTipMsgId = await session.send(`${h.quote(session.messageId)}🔄正在渲染用户信息图片，请稍候⏳...`);
             const selectedImageStyle = IMAGE_STYLES[selectedStyleDetailObj.styleKey];
             const selectedDarkMode = selectedStyleDetailObj.darkMode;
-            const userInfoimageBase64 = await renderUserInfo(ctx, unifiedUserInfo, unifiedContextInfo, selectedImageStyle, selectedDarkMode, config.imageType, config.screenshotQuality);
+            const userInfoimageBase64 = await renderUserInfo(ctx, unifiedUserInfo, unifiedContextInfo, selectedImageStyle, selectedDarkMode, config.imageType, config.screenshotQuality, config.hidePhoneNumber);
             if ( config.verboseFileOutput ){
               try {
                 const tmpDir = resolve(__dirname, '../tmp');
