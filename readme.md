@@ -1,10 +1,12 @@
 # koishi-plugin-onebot-info-image
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-onebot-info-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-onebot-info-image)
+[![npm-download](https://img.shields.io/npm/dm/koishi-plugin-onebot-info-image?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-onebot-info-image)
+
 
 获取成员信息/管理员列表，发送文字/图片/合并转发消息，仅支持onebot
 
-推荐使用Napcat
+推荐使用Napcat![Apifox](https://img.shields.io/badge/Apifox-Napcat文档-blue?logo=apifox)
 
 ### 更新日志
 - **0.3.1-beta.1+20251219**
