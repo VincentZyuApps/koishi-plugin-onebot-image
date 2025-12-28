@@ -18,7 +18,7 @@ export const getSourceHanSerifSCStyleUserInfoHtmlStr = async (userInfo, contextI
         ? `background-image: url(data:image/jpeg;base64,${avatarBase64});`
         : `background-color: #f0f2f5;`;
 
-    const getValue = (value, fallback = '<span class="unknown">未知</span>') => value && value !== '-' ? value : fallback;
+    const getValue = (value, fallback = '<span class="unknown">未知</span>') => (value && value !== '-') ? value : fallback;
 
     const getSex = (sex) => sex === 'male' ? '男' : sex === 'female' ? '女' : '<span class="unknown">未知</span>';
 
@@ -110,12 +110,12 @@ export const getSourceHanSerifSCStyleUserInfoHtmlStr = async (userInfo, contextI
                 </div>
             </div>
             <div class="group-info-body">
-                ${getGroupInfoItem('群名片', getValue(userInfo.card), 'full-width')}
+                ${getGroupInfoItem('群名片', getValue(userInfo.card, '<span class="unknown">未设置</span>'), 'full-width')}
                 <div class="group-level-role-row">
                     ${getGroupInfoItem('群等级', getValue(userInfo.group_level || userInfo.level), 'group-level-item')}
                     ${getGroupInfoItem('群角色', userInfo.role === 'owner' ? '群主' : userInfo.role === 'admin' ? '管理员' : userInfo.role === 'member' ? '成员' : '<span class="unknown">未知</span>', 'group-role-item')}
                 </div>
-                ${getGroupInfoItem('专属头衔', getValue(userInfo.title), 'full-width')}
+                ${getGroupInfoItem('专属头衔', getValue(userInfo.title, '<span class="unknown">未设置</span>'), 'full-width')}
                 <div class="group-time-row">
                     ${getGroupInfoItem('加群时间', formatMsTimestamp(userInfo.join_time), 'join-time-item')}
                     ${getGroupInfoItem('最后发言', formatMsTimestamp(userInfo.last_sent_time || userInfo.lastSentTime || userInfo.last_speak_time), 'last-speak-item')}
@@ -550,7 +550,7 @@ body {
                 <div class="group-details">
                     <div class="group-detail-item">
                         <div class="group-detail-label">群名片</div>
-                        <div class="group-detail-value">${userInfo.card || '未设置'}</div>
+                        <div class="group-detail-value">${userInfo.card || '<span class="unknown">未设置</span>'}</div>
                     </div>
                     <div class="group-detail-item">
                         <div class="group-detail-label">群角色</div>
@@ -562,7 +562,7 @@ body {
                     </div>
                     <div class="group-detail-item">
                         <div class="group-detail-label">专属头衔</div>
-                        <div class="group-detail-value accent-color">${userInfo.title || '无'}</div>
+                        <div class="group-detail-value accent-color">${userInfo.title || '<span class="unknown">无</span>'}</div>
                     </div>
                     <div class="group-detail-item">
                         <div class="group-detail-label">加群时间</div>
@@ -757,7 +757,7 @@ ${contextInfo.memberCount?`<div class="group-member-count">群人数: ${contextI
 </div>
 </div>
 <div class="group-info-grid">
-<div class="group-info-card full-width"><div class="info-label">群名片</div><div class="info-value">${userInfo.card || '<span class="unknown">未知</span>'}</div></div>
+<div class="group-info-card full-width"><div class="info-label">群名片</div><div class="info-value">${userInfo.card || '<span class="unknown">未设置</span>'}</div></div>
 <div class="group-info-card"><div class="info-label">群等级</div><div class="info-value">${userInfo.group_level || '<span class="unknown">未知</span>'}</div></div>
 <div class="group-info-card"><div class="info-label">群角色</div><div class="info-value">${getGroupRole(userInfo.role)}</div></div>
 <div class="group-info-card full-width"><div class="info-label">专属头衔</div><div class="info-value">${userInfo.title || '<span class="unknown">未获取</span>'}</div></div>

@@ -66,6 +66,10 @@ export function registerUserInfoCommand(ctx: Context, config: Config, responseHi
           }
         }
       }
+      const isDirectQueryMsg = `是否直接传入了qq号或者艾特元素作为参数。isDirectQuery = ${isDirectQuery}`
+      if (config.verboseSessionOutput) await session.send(isDirectQueryMsg);
+      if (config.verboseConsoleOutput) ctx.logger.info(isDirectQueryMsg);
+
 
       const userObj = await session.bot.getUser(targetUserId);
       let userObjMsg = `userObj = \n\t ${JSON.stringify(userObj)}`;
@@ -92,13 +96,21 @@ export function registerUserInfoCommand(ctx: Context, config: Config, responseHi
         if (config.verboseSessionOutput) await session.send(strangerInfoObjMsg);
         if (config.verboseConsoleOutput) ctx.logger.info(strangerInfoObjMsg);
 
-        if (session.guildId && !isDirectQuery) { // 如果在群聊中，且不是直接查询（传参）
-          const groupMemberInfoObj = await session.onebot.getGroupMemberInfo(session.guildId, targetUserId);
-          let groupMemberInfoObjMsg = `groupMemberInfoObj = \n\t ${JSON.stringify(groupMemberInfoObj)}`;
-          if (config.verboseSessionOutput) await session.send(groupMemberInfoObjMsg);
-          if (config.verboseConsoleOutput) ctx.logger.info(groupMemberInfoObjMsg);
+        let groupMemberInfoObj = undefined;
+        let groupInfoObj = undefined;
 
-          const groupInfoObj = await session.onebot.getGroupInfo(session.guildId);
+        if (session.guildId && isDirectQuery) { // 如果在群聊中，且是直接使用艾特元素或者userid进行查询
+          try{
+            groupMemberInfoObj = await session.onebot.getGroupMemberInfo(session.guildId, targetUserId);
+            let groupMemberInfoObjMsg = `groupMemberInfoObj = \n\t ${JSON.stringify(groupMemberInfoObj)}`;
+            if (config.verboseSessionOutput) await session.send(groupMemberInfoObjMsg);
+            if (config.verboseConsoleOutput) ctx.logger.info(groupMemberInfoObjMsg);
+          } catch ( e ) {
+            ctx.logger.warn('获取用户信息失败捏，把groupMemberInfoObj设置成*undefined*好了');
+          }
+          
+
+          groupInfoObj = await session.onebot.getGroupInfo(session.guildId);
           let groupInfoObjMsg = `groupInfoObj = \n\t ${JSON.stringify(groupInfoObj)}`;
           if (config.verboseSessionOutput) await session.send(groupInfoObjMsg);
           if (config.verboseConsoleOutput) ctx.logger.info(groupInfoObjMsg);
@@ -113,12 +125,12 @@ export function registerUserInfoCommand(ctx: Context, config: Config, responseHi
             // node_modules/koishi-plugin-adapter-onebot/lib/types.d.ts:  export interface StrangerInfo ...
             level: strangerInfoObj.level,
             sex: strangerInfoObj.sex,
-            card: groupMemberInfoObj.card,
-            role: groupMemberInfoObj.role,
-            join_time: groupMemberInfoObj.join_time,
-            last_sent_time: groupMemberInfoObj.last_sent_time,
-            group_level: groupMemberInfoObj.level,
-            title: groupMemberInfoObj.title,
+            card: groupMemberInfoObj ? groupMemberInfoObj.card : '-',
+            role: groupMemberInfoObj ? groupMemberInfoObj.role : '-',
+            join_time: groupMemberInfoObj ? groupMemberInfoObj.join_time : '-',
+            last_sent_time: groupMemberInfoObj ? groupMemberInfoObj.last_sent_time : '-',
+            group_level: groupMemberInfoObj ? groupMemberInfoObj.level : '-',
+            title: groupMemberInfoObj ? groupMemberInfoObj.title : '这人可能不在群里(',
             avatar: userObj.avatar
           };
 
