@@ -99,7 +99,7 @@ export function registerUserInfoCommand(ctx: Context, config: Config, responseHi
         let groupMemberInfoObj = undefined;
         let groupInfoObj = undefined;
 
-        if (session.guildId && isDirectQuery) { // 如果在群聊中，且是直接使用艾特元素或者userid进行查询
+        if (session.guildId) { // 在群聊中
           try{
             groupMemberInfoObj = await session.onebot.getGroupMemberInfo(session.guildId, targetUserId);
             let groupMemberInfoObjMsg = `groupMemberInfoObj = \n\t ${JSON.stringify(groupMemberInfoObj)}`;
@@ -144,7 +144,7 @@ export function registerUserInfoCommand(ctx: Context, config: Config, responseHi
             memberCount: groupInfoObj.member_count || 0,
             maxMemberCount: groupInfoObj.max_member_count || 0,
           };
-        } else {
+        } else {  // 不在群聊中
           // 私聊情况，只使用陌生人信息
           userInfoArg = {
             ...strangerInfoObj,
